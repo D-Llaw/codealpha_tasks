@@ -1,0 +1,197 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.calc-wrap{display:flex;gap:24px;padding:2rem;max-width:780px;margin:0 auto;align-items:flex-start}
+.calc{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-xl);padding:24px;width:360px;flex-shrink:0;box-shadow:0 4px 32px rgba(0,0,0,0.08)}
+.display{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:20px 20px 12px;margin-bottom:20px;min-height:100px;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;border:0.5px solid var(--color-border-tertiary)}
+.expr{font-size:13px;color:var(--color-text-tertiary);min-height:20px;word-break:break-all;text-align:right;margin-bottom:6px}
+.main-display{font-size:42px;font-weight:500;color:var(--color-text-primary);line-height:1;word-break:break-all;text-align:right;letter-spacing:-1px}
+.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button{border:none;cursor:pointer;border-radius:var(--border-radius-md);font-size:17px;font-weight:400;height:58px;transition:transform 0.08s,background 0.1s;font-family:var(--font-sans)}
+button:active{transform:scale(0.95)}
+.btn-func{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.btn-func:hover{background:var(--color-background-tertiary)}
+.btn-op{background:#E8E4FB;color:#3C3489}
+.btn-op:hover{background:#D3CEEE}
+.btn-op.active-op{background:#534AB7;color:#fff}
+.btn-num{background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary)}
+.btn-num:hover{background:var(--color-background-secondary)}
+.btn-eq{background:#534AB7;color:#fff;grid-column:span 1}
+.btn-eq:hover{background:#3C3489}
+.btn-zero{grid-column:span 2}
+.btn-clear{background:#FAECE7;color:#993C1D;border:0.5px solid #F5C4B3}
+.btn-clear:hover{background:#F5C4B3}
+.keyboard-hint{font-size:11px;color:var(--color-text-tertiary);text-align:center;margin-top:14px}
+.hist-panel{flex:1;min-width:0}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hist-title{font-size:14px;font-weight:500;color:var(--color-text-secondary)}
+.hist-clear-btn{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;height:auto;font-family:var(--font-sans)}
+.hist-clear-btn:hover{color:var(--color-text-primary);background:var(--color-background-secondary);transform:none}
+.hist-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
+.hist-item{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;cursor:pointer;transition:background 0.1s}
+.hist-item:hover{background:var(--color-background-secondary)}
+.hist-expr{font-size:12px;color:var(--color-text-tertiary);margin-bottom:2px}
+.hist-result{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hist-empty{font-size:13px;color:var(--color-text-tertiary);text-align:center;padding:2rem 0}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Interactive calculator with history log</h2>
+
+<div class="calc-wrap">
+  <div class="calc">
+    <div class="display">
+      <div class="expr" id="expr"></div>
+      <div class="main-display" id="display">0</div>
+    </div>
+    <div class="btns">
+      <button class="btn-clear" onclick="calcAction('clear')" id="clearBtn">AC</button>
+      <button class="btn-func" onclick="calcAction('toggle')">±</button>
+      <button class="btn-func" onclick="calcAction('percent')">%</button>
+      <button class="btn-op" onclick="calcAction('op','÷')" id="op-÷">÷</button>
+
+      <button class="btn-num" onclick="calcAction('num','7')">7</button>
+      <button class="btn-num" onclick="calcAction('num','8')">8</button>
+      <button class="btn-num" onclick="calcAction('num','9')">9</button>
+      <button class="btn-op" onclick="calcAction('op','×')" id="op-×">×</button>
+
+      <button class="btn-num" onclick="calcAction('num','4')">4</button>
+      <button class="btn-num" onclick="calcAction('num','5')">5</button>
+      <button class="btn-num" onclick="calcAction('num','6')">6</button>
+      <button class="btn-op" onclick="calcAction('op','−')" id="op-−">−</button>
+
+      <button class="btn-num" onclick="calcAction('num','1')">1</button>
+      <button class="btn-num" onclick="calcAction('num','2')">2</button>
+      <button class="btn-num" onclick="calcAction('num','3')">3</button>
+      <button class="btn-op" onclick="calcAction('op','+')" id="op-+">+</button>
+
+      <button class="btn-num btn-zero" onclick="calcAction('num','0')">0</button>
+      <button class="btn-num" onclick="calcAction('decimal')">.</button>
+      <button class="btn-eq" onclick="calcAction('equals')">=</button>
+    </div>
+    <div class="keyboard-hint">Keyboard supported · <kbd style="font-size:11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:3px;padding:1px 5px">Esc</kbd> to clear</div>
+  </div>
+
+  <div class="hist-panel">
+    <div class="hist-header">
+      <span class="hist-title">History</span>
+      <button class="hist-clear-btn" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty" id="histEmpty">No calculations yet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let current='0', prev='', operator='', justEvaled=false, history=[];
+
+function fmt(n){
+  let s=parseFloat(n).toPrecision(12);
+  let num=parseFloat(s);
+  if(Math.abs(num)>=1e12||Math.abs(num)<1e-9&&num!==0)return num.toExponential(4);
+  let str=num.toString();
+  if(str.length>13)str=parseFloat(num.toFixed(9)).toString();
+  return str;
+}
+
+function setDisplay(v){document.getElementById('display').textContent=v}
+function setExpr(v){document.getElementById('expr').textContent=v}
+function highlightOp(op){
+  ['÷','×','−','+'].forEach(o=>{
+    let el=document.getElementById('op-'+o);
+    if(el)el.classList.toggle('active-op',o===op);
+  });
+}
+
+function calcAction(type,val){
+  let clearBtn=document.getElementById('clearBtn');
+  if(type==='num'){
+    if(justEvaled){current=val;justEvaled=false;}
+    else if(current==='0'||current==='-0')current=current.startsWith('-')?'-'+val:val;
+    else if(current.length<15)current+=val;
+    clearBtn.textContent='C';
+    setDisplay(current);
+    if(!operator)setExpr('');
+  } else if(type==='decimal'){
+    if(justEvaled){current='0.';justEvaled=false;}
+    else if(!current.includes('.'))current+='.';
+    clearBtn.textContent='C';
+    setDisplay(current);
+  } else if(type==='clear'){
+    if(clearBtn.textContent==='C'&&current!=='0'){current='0';setDisplay('0');clearBtn.textContent='AC';}
+    else{current='0';prev='';operator='';justEvaled=false;setDisplay('0');setExpr('');clearBtn.textContent='AC';highlightOp(null);}
+  } else if(type==='toggle'){
+    if(current==='0')return;
+    current=current.startsWith('-')?current.slice(1):'-'+current;
+    setDisplay(current);
+  } else if(type==='percent'){
+    let n=parseFloat(current);
+    if(operator&&prev!==''){n=parseFloat(prev)*n/100;}
+    else{n=n/100;}
+    current=fmt(n);
+    setDisplay(current);
+  } else if(type==='op'){
+    if(operator&&!justEvaled&&prev!==''){
+      let r=compute(parseFloat(prev),parseFloat(current),operator);
+      current=fmt(r);setDisplay(current);
+    }
+    prev=current;operator=val;justEvaled=false;
+    setExpr(current+' '+val);
+    highlightOp(val);
+  } else if(type==='equals'){
+    if(!operator||prev==='')return;
+    let a=parseFloat(prev),b=parseFloat(current),r=compute(a,b,operator);
+    let exprStr=prev+' '+operator+' '+current+' =';
+    let resultStr=fmt(r);
+    addHistory(exprStr,resultStr);
+    setExpr(exprStr);
+    current=resultStr;setDisplay(current);
+    prev='';operator='';justEvaled=true;
+    highlightOp(null);
+  }
+}
+
+function compute(a,b,op){
+  if(op==='÷')return b===0?NaN:a/b;
+  if(op==='×')return a*b;
+  if(op==='−')return a-b;
+  if(op==='+')return a+b;
+  return b;
+}
+
+function addHistory(expr,result){
+  history.unshift({expr,result});
+  if(history.length>50)history.pop();
+  renderHistory();
+}
+
+function renderHistory(){
+  let list=document.getElementById('histList');
+  let empty=document.getElementById('histEmpty');
+  if(history.length===0){empty.style.display='';list.innerHTML='';list.appendChild(empty);return;}
+  empty.style.display='none';
+  list.innerHTML='';
+  history.forEach((h,i)=>{
+    let div=document.createElement('div');
+    div.className='hist-item';
+    div.innerHTML='<div class="hist-expr">'+h.expr+'</div><div class="hist-result">'+h.result+'</div>';
+    div.onclick=()=>{current=h.result;document.getElementById('display').textContent=h.result;document.getElementById('clearBtn').textContent='C';};
+    list.appendChild(div);
+  });
+}
+
+function clearHistory(){history=[];renderHistory();}
+
+document.addEventListener('keydown',e=>{
+  if(e.key>='0'&&e.key<='9')calcAction('num',e.key);
+  else if(e.key==='.')calcAction('decimal');
+  else if(e.key==='+'||e.key==='-')calcAction('op',e.key==='+'?'+':'−');
+  else if(e.key==='*')calcAction('op','×');
+  else if(e.key==='/'){{e.preventDefault();calcAction('op','÷');}}
+  else if(e.key==='%')calcAction('percent');
+  else if(e.key==='Enter'||e.key==='=')calcAction('equals');
+  else if(e.key==='Backspace'){if(!justEvaled&&current.length>1)current=current.slice(0,-1);else current='0';document.getElementById('display').textContent=current;}
+  else if(e.key==='Escape')calcAction('clear');
+});
+</script>
