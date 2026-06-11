@@ -1,0 +1,180 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.gallery-wrap{padding:1.5rem 0}
+.gallery-header{margin-bottom:1.5rem}
+.gallery-title{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.gallery-sub{font-size:14px;color:var(--color-text-secondary)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.filter-btn{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:400;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);transition:all 0.2s;font-family:var(--font-sans)}
+.filter-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.filter-btn.active{background:#534AB7;color:#fff;border-color:#534AB7}
+.masonry{columns:3;column-gap:12px}
+.card{break-inside:avoid;margin-bottom:12px;border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;position:relative;display:block}
+.card img{width:100%;display:block;transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)}
+.card:hover img{transform:scale(1.07)}
+.caption{position:absolute;bottom:0;left:0;right:0;padding:24px 14px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.72));opacity:0;transition:opacity 0.3s;pointer-events:none}
+.card:hover .caption{opacity:1}
+.cap-title{font-size:14px;font-weight:500;color:#fff;line-height:1.3}
+.cap-tag{display:inline-block;margin-top:5px;font-size:11px;padding:2px 8px;border-radius:10px;color:#fff;border:0.5px solid rgba(255,255,255,0.4)}
+.card.hidden{display:none}
+.card.fade-in{animation:fadeIn 0.35s ease forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.lightbox{display:none;position:absolute;top:0;left:0;width:100%;z-index:100;min-height:100%}
+.lb-backdrop{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88)}
+.lb-content{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;min-height:480px;padding:2rem}
+.lb-inner{max-width:560px;width:100%}
+.lb-img{width:100%;border-radius:var(--border-radius-lg);display:block}
+.lb-info{padding:14px 4px 0}
+.lb-title{font-size:17px;font-weight:500;color:#fff}
+.lb-desc{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px}
+.lb-tag{display:inline-block;margin-top:8px;font-size:12px;padding:3px 10px;border-radius:10px;color:#fff;border:0.5px solid rgba(255,255,255,0.3)}
+.lb-close{position:absolute;top:1rem;right:1rem;z-index:3;background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+.lb-nav{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:0 4px}
+.lb-nav-btn{background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 20px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;font-family:var(--font-sans);transition:background 0.2s;display:flex;align-items:center;gap:6px}
+.lb-nav-btn:hover{background:rgba(255,255,255,0.22)}
+.lb-counter{font-size:13px;color:rgba(255,255,255,0.5)}
+.cat-nature .cap-tag{background:rgba(15,110,86,0.7)}
+.cat-city .cap-tag{background:rgba(24,95,165,0.7)}
+.cat-abstract .cap-tag{background:rgba(83,74,183,0.7)}
+.cat-food .cap-tag{background:rgba(186,117,23,0.7)}
+.cat-people .cap-tag{background:rgba(212,83,126,0.7)}
+.count-badge{font-size:13px;color:var(--color-text-tertiary);margin-left:auto;align-self:center}
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Masonry image gallery with category filters and lightbox</h2>
+
+<div class="gallery-wrap">
+  <div class="gallery-header">
+    <div class="gallery-title">Gallery</div>
+    <div class="gallery-sub">Mixed collection — click any image to explore</div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:1.5rem;flex-wrap:wrap;row-gap:8px">
+    <div class="filters" style="margin-bottom:0;flex:1">
+      <button class="filter-btn active" onclick="filter('all')">All</button>
+      <button class="filter-btn" onclick="filter('nature')"><i class="ti ti-leaf" style="font-size:13px;margin-right:4px" aria-hidden="true"></i>Nature</button>
+      <button class="filter-btn" onclick="filter('city')"><i class="ti ti-building" style="font-size:13px;margin-right:4px" aria-hidden="true"></i>City</button>
+      <button class="filter-btn" onclick="filter('abstract')"><i class="ti ti-geometry" style="font-size:13px;margin-right:4px" aria-hidden="true"></i>Abstract</button>
+      <button class="filter-btn" onclick="filter('food')"><i class="ti ti-salad" style="font-size:13px;margin-right:4px" aria-hidden="true"></i>Food</button>
+      <button class="filter-btn" onclick="filter('people')"><i class="ti ti-user" style="font-size:13px;margin-right:4px" aria-hidden="true"></i>People</button>
+    </div>
+    <span class="count-badge" id="countBadge">18 photos</span>
+  </div>
+
+  <div class="masonry" id="grid"></div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <div class="lb-backdrop" onclick="closeLB()"></div>
+  <button class="lb-close" onclick="closeLB()" aria-label="Close"><i class="ti ti-x" style="font-size:16px"></i></button>
+  <div class="lb-content">
+    <div class="lb-inner">
+      <img class="lb-img" id="lbImg" src="" alt="">
+      <div class="lb-info">
+        <div class="lb-title" id="lbTitle"></div>
+        <div class="lb-desc" id="lbDesc"></div>
+        <span class="lb-tag" id="lbTag"></span>
+      </div>
+      <div class="lb-nav">
+        <button class="lb-nav-btn" onclick="navLB(-1)"><i class="ti ti-arrow-left" style="font-size:15px"></i> Prev</button>
+        <span class="lb-counter" id="lbCounter"></span>
+        <button class="lb-nav-btn" onclick="navLB(1)">Next <i class="ti ti-arrow-right" style="font-size:15px"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const imgs=[
+  {id:1,src:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",title:"Alpine sunrise",desc:"Golden hour over the Swiss Alps",cat:"nature",h:400},
+  {id:2,src:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80",title:"City lights",desc:"Downtown skyline at dusk",cat:"city",h:320},
+  {id:3,src:"https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=600&q=80",title:"Color burst",desc:"Abstract paint pour on canvas",cat:"abstract",h:380},
+  {id:4,src:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",title:"Fresh harvest",desc:"Farm-to-table seasonal spread",cat:"food",h:300},
+  {id:5,src:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80",title:"Golden hour",desc:"Portrait in warm evening light",cat:"people",h:440},
+  {id:6,src:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80",title:"Green valley",desc:"Rolling hills after spring rain",cat:"nature",h:340},
+  {id:7,src:"https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=600&q=80",title:"Night bridge",desc:"Bridge reflections on the river",cat:"city",h:360},
+  {id:8,src:"https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80",title:"Liquid marble",desc:"Fluid art in blue and gold",cat:"abstract",h:320},
+  {id:9,src:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",title:"Wood-fired pizza",desc:"Neapolitan style from the oven",cat:"food",h:360},
+  {id:10,src:"https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&q=80",title:"Morning light",desc:"Candid portrait by the window",cat:"people",h:420},
+  {id:11,src:"https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=600&q=80",title:"Misty forest",desc:"Pine trees in morning fog",cat:"nature",h:380},
+  {id:12,src:"https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80",title:"Urban geometry",desc:"Architecture lines and shadows",cat:"city",h:300},
+  {id:13,src:"https://images.unsplash.com/photo-1487088678257-3a541e6e3922?w=600&q=80",title:"Neon geometry",desc:"Light trails in long exposure",cat:"abstract",h:350},
+  {id:14,src:"https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&q=80",title:"Sunday brunch",desc:"Avocado toast and cold brew",cat:"food",h:320},
+  {id:15,src:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80",title:"On the rooftop",desc:"Lifestyle portrait at sunset",cat:"people",h:400},
+  {id:16,src:"https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80",title:"Ocean cliffs",desc:"Coastal landscape at high tide",cat:"nature",h:340},
+  {id:17,src:"https://images.unsplash.com/photo-1465447142348-e9952c393450?w=600&q=80",title:"Market alley",desc:"Old town street at twilight",cat:"city",h:380},
+  {id:18,src:"https://images.unsplash.com/photo-1498579150354-977475b7ea0b?w=600&q=80",title:"Ramen bowl",desc:"Slow-cooked tonkotsu broth",cat:"food",h:310},
+];
+
+const catColors={nature:"#0F6E56",city:"#185FA5",abstract:"#534AB7",food:"#BA7517",people:"#993556"};
+let active='all', lbIdx=0, visible=[];
+
+function buildGrid(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  visible=imgs.filter(i=>active==='all'||i.cat===active);
+  document.getElementById('countBadge').textContent=visible.length+' photo'+(visible.length!==1?'s':'');
+  visible.forEach((img,idx)=>{
+    const card=document.createElement('div');
+    card.className='card cat-'+img.cat+' fade-in';
+    card.style.animationDelay=(idx*0.04)+'s';
+    card.innerHTML=`<img src="${img.src}" alt="${img.title}" loading="lazy" style="height:${img.h/2}px;object-fit:cover;width:100%">
+    <div class="caption">
+      <div class="cap-title">${img.title}</div>
+      <span class="cap-tag">${img.cat}</span>
+    </div>`;
+    card.onclick=()=>openLB(idx);
+    grid.appendChild(card);
+  });
+}
+
+function filter(cat){
+  active=cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    b.classList.toggle('active',b.textContent.trim().toLowerCase()===cat||(cat==='all'&&b.textContent.trim()==='All'));
+  });
+  buildGrid();
+}
+
+function openLB(idx){
+  lbIdx=idx;
+  const lb=document.getElementById('lightbox');
+  lb.style.display='block';
+  renderLB();
+}
+
+function renderLB(){
+  const img=visible[lbIdx];
+  document.getElementById('lbImg').src=img.src+'&w=900';
+  document.getElementById('lbImg').alt=img.title;
+  document.getElementById('lbTitle').textContent=img.title;
+  document.getElementById('lbDesc').textContent=img.desc;
+  const tag=document.getElementById('lbTag');
+  tag.textContent=img.cat;
+  tag.style.background=catColors[img.cat]+'99';
+  document.getElementById('lbCounter').textContent=(lbIdx+1)+' / '+visible.length;
+}
+
+function navLB(dir){
+  lbIdx=(lbIdx+dir+visible.length)%visible.length;
+  renderLB();
+}
+
+function closeLB(){
+  document.getElementById('lightbox').style.display='none';
+}
+
+document.addEventListener('keydown',e=>{
+  const lb=document.getElementById('lightbox');
+  if(lb.style.display==='block'){
+    if(e.key==='ArrowRight')navLB(1);
+    else if(e.key==='ArrowLeft')navLB(-1);
+    else if(e.key==='Escape')closeLB();
+  }
+});
+
+buildGrid();
+</script>
